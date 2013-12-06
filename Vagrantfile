@@ -7,11 +7,12 @@ Vagrant.configure("2") do |config|
     vb.customize ["modifyvm", :id, "--memory", 1024]
   end
   config.vm.provision :shell, :inline => "sudo apt-get update -y"
+  config.vm.provision :shell, :inline => "sudo apt-get install vim -y"
   config.vm.provision :chef_solo do |chef|
     chef.cookbooks_path = ["#{File.expand_path("..",Dir.pwd)}"]
  
     # Turn on verbose Chef logging if necessary
-    chef.log_level      = :info
+    chef.log_level      = :debug
  
     # List the recipies you are going to work on/need.
     #chef.add_recipe     "minitest-handler"

@@ -18,12 +18,15 @@
 
 include_recipe "java"
 
-# http://eclipse.org/downloads/download.php?file=/jetty/stable-9/dist/jetty-distribution-9.1.0.v20131115.tar.gz&r=1
 prefix = "jetty-distribution"
 tarball = "#{prefix}-#{node['jetty']['version']}.tar.gz"
 url = "http://eclipse.org/downloads/download.php?file=/jetty/#{node['jetty']['version']}/dist/#{tarball}&r=1"
 output_dir = File.join(node['jetty']['install_dir'], "#{prefix}-#{node['jetty']['version']}")
 
+file "/tmp/java.info" do
+  action :create
+  content "#{node[:java]}"
+end
 group node['jetty']['group'] do
   action :create
 end
@@ -42,50 +45,35 @@ end
   end
 end
 
-remote_file "#{Chef::Config[:file_cache_path]}/#{tarball}" do
-  source url
-  mode "0644"
-  checksum node["jetty"]["md5"]
-end
-bash "Extract tarball" do
-  user node['jetty']['user']
-  cwd node['jetty']['install_dir']
-  code <<-EOH
+unless File.exists?(output_dir)
+
+  remote_file "#{Chef::Config[:file_cache_path]}/#{tarball}" do
+    source url
+    mode "0644"
+    checksum node["jetty"]["md5"]
+  end
+  bash "Extract tarball" do
+    user node['jetty']['user']
+    cwd node['jetty']['install_dir']
+    code <<-EOH
       tar -xvzf #{Chef::Config[:file_cache_path]}/#{tarball}
-  EOH
+    EOH
+  end
+  link node['jetty']['home'] do
+    to output_dir
+  end
 end
-link node['jetty']['home'] do
-  to output_dir
-end
-package "jsvc" do
-  action :install
-end
-template "/etc/init.d/jetty" do
-  source "jetty-init.erb"
-  owner "root"
-  group "root"
-  mode "0700"
-end
-#service "jetty" do
-#  case node["platform"]
-#  when "centos","redhat","fedora"
-#    service_name "jetty"
-#    supports :restart => true
-#  when "debian","ubuntu"
-#    service_name "jetty"
-#    supports :restart => true, :status => true
-#    action [:enable, :start]
-#  end
-#end
 
-
+link "/etc/init.d/jetty" do
+  to "#{node['jetty']['home']}/bin/jetty.sh"
+end
 
 template "/etc/default/jetty" do
   source "default_jetty.erb"
   owner "root"
   group "root"
   mode "0644"
-  #  notifies :restart, "service[jetty]"
+  notifies :restart, "service[jetty]"
 end
 
 template "#{node['jetty']['config_dir']}/jetty.xml" do
@@ -93,6 +81,17 @@ template "#{node['jetty']['config_dir']}/jetty.xml" do
   owner "root"
   group "root"
   mode "0644"
-  #  notifies :restart, "service[jetty]"
+  notifies :restart, "service[jetty]"
 end
 
+service "jetty" do
+  case node["platform"]
+  when "centos","redhat","fedora"
+    service_name "jetty"
+    supports :restart => true
+  when "debian","ubuntu"
+    service_name "jetty"
+    supports :restart => true, :status => true
+    action [:enable, :start]
+  end
+end
