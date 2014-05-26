@@ -21,7 +21,7 @@ include_recipe "java"
 prefix = "jetty-distribution"
 tarball = "#{prefix}-#{node['jetty']['revision']}.tar.gz"
 url = "http://eclipse.org/downloads/download.php?file=/jetty/stable-#{node['jetty']['version']}/dist/#{tarball}&r=1"
-output_dir = File.join(node['jetty']['install_dir'], "#{prefix}-#{node['jetty']['version']}")
+output_dir = File.join(node['jetty']['install_dir'], "#{prefix}-#{node['jetty']['revision']}")
 
 file "/tmp/java.info" do
   action :create
