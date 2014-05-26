@@ -19,7 +19,7 @@
 include_recipe "java"
 
 prefix = "jetty-distribution"
-tarball = "#{prefix}-#{node['jetty']['version']}.tar.gz"
+tarball = "#{prefix}-#{node['jetty']['revision']}.tar.gz"
 url = "http://eclipse.org/downloads/download.php?file=/jetty/#{node['jetty']['version']}/dist/#{tarball}&r=1"
 output_dir = File.join(node['jetty']['install_dir'], "#{prefix}-#{node['jetty']['version']}")
 
